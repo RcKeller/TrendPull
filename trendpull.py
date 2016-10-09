@@ -16,10 +16,10 @@ USERNAME = ''
 PASSWORD = ''
 AGENT = ''
 
-NAMES = []
+SEARCHES = []
 
 CREDENTIAL_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'data', 'data.txt')
-NAME_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'names', 'names.csv')
+SEARCH_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'searches', 'searches.csv')
 SAVE_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'trends', 'trends.csv')
 
 COUNTRY = 'US'
@@ -31,7 +31,7 @@ COUNTRY = 'US'
 
 def main():
     loadCredentials()
-    loadNames()
+    loadSearches()
     
     # Menu loop
     while True:
@@ -42,10 +42,10 @@ def main():
             #CREDENTIAL MANAGER
             if choice == 1:
                 credentials()
-            #NAMELIST SETTINGS
+            #SEARCH LIST SETTINGS
             elif choice == 2:
-                nameList = raw_input('Namelist Location: ').rstrip('\n')
-                loadNames(nameList)
+                searchList = raw_input('Search List Location: ').rstrip('\n')
+                loadSearches(searchList)
             #DOWNLOAD SETTINGS
             elif choice == 3:
                 global SAVE_FILE
@@ -105,32 +105,32 @@ def loadCredentials():
         
     except Exception as e:
         print('Could not locate credentials, loading defaults')
-        USERNAME = 'fostertrends'
-        PASSWORD = 'ProfBorah'
-        AGENT = 'ProfessorTrendy'
+        USERNAME = 'missing_user'
+        PASSWORD = 'missing_pass'
+        AGENT = 'trendpull_agent'
     print('-'*40)
     return
     
     
-def loadNames(nameList=NAME_LIST):
-    global NAMES
+def loadSearches(searchList=SEARCH_LIST):
+    global SEARCHES
     try:
-        r = open(NAME_LIST, 'r')
-        NAMES = []
+        r = open(SEARCH_LIST, 'r')
+        SEARCHES = []
         index = 0
         line = r.readline()
         while line != '':
             line = line.rstrip('\n')
-            NAMES.append(line)
+            SEARCHES.append(line)
             index += 1
             line = r.readline()    
         r.close()
-        NAMES = ', '.join(NAMES)
+        SEARCHES = ', '.join(SEARCHES)
         
-        print('Loading Names:\n' + NAME_LIST + '\t(' + str(index) + ')')
+        print('Loading search list:\n' + SEARCH_LIST + '\t(' + str(index) + ')')
         
     except Exception as e:
-        print('Could not load name list.')
+        print('Could not load search list.')
     print('-'*40)
     
     return
@@ -151,11 +151,11 @@ def menu():
     print('SAVING TO:\t\t' + SAVE_FILE)
     print('='*40)
     print('\t1) Update Credentials')
-    print('\t2) Update Namelist')
+    print('\t2) Update Search List')
     print('\t3) Change Save File')
-    print('\t4) Data for: ' + COUNTRY)
+    print('\t4) Data For: ' + COUNTRY)
     print('\t5) Ad-Hoc Trend Pull')
-    print('\t6) Namelist Trend Pull')
+    print('\t6) Mass Trend Pull')
     print('='*40)
     return
     
@@ -178,13 +178,16 @@ def credentials():
     
 def pull(adhoc=True, save=True, printDataFrame=False):
     try:
+        print('-'*40)
         print('Connecting to Google...')
         pytrend = TrendReq(USERNAME, PASSWORD, AGENT)
         
         if adhoc:
+            print(' .'*20)
             terms = raw_input('Search: ').rstrip('\n')
+            print(' .'*20)
         else:
-            terms = NAMES
+            terms = SEARCHES
         payload = {'q': terms, 'geo': COUNTRY}
         
         print('Requesting trends from Google...')
@@ -192,7 +195,9 @@ def pull(adhoc=True, save=True, printDataFrame=False):
         
         print('Trends received.')
         if printDataFrame:
+            print('-'*40)
             print(df)
+            print('-'*40)
             
         if save:
             print('Saving trends to: ' + SAVE_FILE + '...')

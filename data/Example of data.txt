@@ -1,0 +1,3 @@
+U: username
+P: password
+A: trendpull_agent
