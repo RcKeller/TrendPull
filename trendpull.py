@@ -32,6 +32,7 @@
 
 import os, sys
 from pytrends.request import TrendReq
+import pandas as pd #DataFrame File Formatting
     
 ################################################################################
 #                                      Credentials
@@ -63,7 +64,7 @@ def main():
     while True:
         try:
             menu()
-            choice = option(0, 5)
+            choice = option(0, 6)
         
             #CREDENTIAL MANAGER
             if choice == 1:
@@ -85,10 +86,9 @@ def main():
             #AD-HOC TREND PULL
             elif choice == 5:
                 pull(True, True, True)
-                # def pull(adhoc=True, save=True, printDataFrame=False):
             #MASS TREND PULL
             elif choice == 6:
-                pull(False, True, True)
+                pull(False, True, False)
             #EXIT SENTINEL
             elif choice == 0:
                 sys.exit()
@@ -205,6 +205,7 @@ def credentials():
     
 def pull(adhoc=True, save=True, printDataFrame=False):
     try:
+        print('Connecting to Google...')
         pytrend = TrendReq(USERNAME, PASSWORD, AGENT)
         
         if adhoc:
@@ -212,22 +213,19 @@ def pull(adhoc=True, save=True, printDataFrame=False):
         else:
             terms = NAMES
         payload = {'q': terms, 'geo': COUNTRY}
-        '''
+        
+        print('Requesting trends from Google...')
+        df = pytrend.trend(payload, return_type='dataframe')
+        # df = pytrend.trend(payload)
+        
+        print('Trends received.')
         if printDataFrame:
-            df = pytrend.trend(payload, return_type='dataframe')
             print(df)
-        '''
+            
         if save:
-            trend = pytrend.trend(payload)
-            print(trend)
-            
-            mode = 'a' if os.path.exists(SAVE_FILE) else 'w+'
-            file = open(SAVE_FILE, mode)
-            file.write(str(trend))
-            file.close()
+            print('Saving trends to: ' + SAVE_FILE + '...')
+            df.to_csv(SAVE_FILE, encoding='utf-8')
             print('Saved trend data to: ' + SAVE_FILE)
-            
-            print('NO EXCEPT')
         
     except Exception as reason:
         returnException(reason)
