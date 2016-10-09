@@ -1,38 +1,12 @@
 #   env\scripts\activate
 
-
-#           Net Check | Python 3
-#               by Ryan Keller
-#
-#   A proactive monitoring system made in order to view store uptime with the
-#   intention of delivering IT and vendor services to stores experiencing outages.
-#
-################################################################################
-#
-#   Functions:
-#       1) Net Check
-#           Manually check the status of a store and detect outages.
-#       2) Range Monitor
-#           Checks stores within specific ranges; scan an entire enterprise
-#       3) List Monitor
-#           Collect a .csv list of store data and scan for outages
-#
-#   Data File Format: .csv (basic excell/spreadsheet)
-#       Store               Country         Register Count
-#       Integer, 5 long     US or CA        Integer, no limit
-#
-#   Example data set:
-#       10304               US              2
-#       267                 CA              6   
-#
-
 ################################################################################
 #                                      Import Segment
 ################################################################################
 
 import os, sys
 from pytrends.request import TrendReq
-import pandas as pd #DataFrame File Formatting
+import pandas as pd     #DataFrame File Formatting
     
 ################################################################################
 #                                      Credentials
@@ -49,7 +23,6 @@ NAME_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'names', 'names.csv')
 SAVE_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'trends', 'trends.csv')
 
 COUNTRY = 'US'
-
 
 
 ################################################################################
@@ -216,7 +189,6 @@ def pull(adhoc=True, save=True, printDataFrame=False):
         
         print('Requesting trends from Google...')
         df = pytrend.trend(payload, return_type='dataframe')
-        # df = pytrend.trend(payload)
         
         print('Trends received.')
         if printDataFrame:
@@ -226,7 +198,7 @@ def pull(adhoc=True, save=True, printDataFrame=False):
             print('Saving trends to: ' + SAVE_FILE + '...')
             df.to_csv(SAVE_FILE, encoding='utf-8')
             print('Saved trend data to: ' + SAVE_FILE)
-        
+    
     except Exception as reason:
         returnException(reason)
     return
