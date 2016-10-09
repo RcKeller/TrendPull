@@ -45,8 +45,8 @@ NAMES = []
 
 CREDENTIAL_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'data', 'data.txt')
 NAME_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'names', 'names.csv')
+SAVE_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'trends', 'trends.csv')
 
-COUNTRY = 'World'
 COUNTRY = 'US'
 
 
@@ -70,16 +70,24 @@ def main():
                 credentials()
             #NAMELIST SETTINGS
             elif choice == 2:
-                namelist()
+                nameList = raw_input('Namelist Location: ').rstrip('\n')
+                loadNames(nameList)
             #DOWNLOAD SETTINGS
             elif choice == 3:
-                downloadsettings()
-            #AD-HOC TREND PULL
+                global SAVE_FILE
+                SAVE_FILE = raw_input('Save Location: ').rstrip('\n')
             elif choice == 4:
+                global COUNTRY
+                if COUNTRY == 'World':
+                    COUNTRY = 'US'
+                else:
+                    COUNTRY = 'WORLD'
+            #AD-HOC TREND PULL
+            elif choice == 5:
                 pull(True, True, True)
                 # def pull(adhoc=True, save=True, printDataFrame=False):
             #MASS TREND PULL
-            elif choice == 5:
+            elif choice == 6:
                 pull(False, True, True)
             #EXIT SENTINEL
             elif choice == 0:
@@ -131,7 +139,7 @@ def loadCredentials():
     return
     
     
-def loadNames():
+def loadNames(nameList=NAME_LIST):
     global NAMES
     try:
         r = open(NAME_LIST, 'r')
@@ -146,10 +154,10 @@ def loadNames():
         r.close()
         NAMES = ', '.join(NAMES)
         
-        print('Auto-Loading Names:\n' + NAME_LIST + '\t(' + str(index) + ')')
+        print('Loading Names:\n' + NAME_LIST + '\t(' + str(index) + ')')
         
     except Exception as e:
-        print('Could not load name list by default')
+        print('Could not load name list.')
     print('-'*40)
     
     return
@@ -166,12 +174,15 @@ def menu():
     print('USER:\t\t' + USERNAME + '\n' +
     'PASS:\t\t' + ('*' * len(PASSWORD)) + '\n' + 
     'AGENT:\t\t' + AGENT)
+    print(' .'*20)
+    print('SAVING TO:\t\t' + SAVE_FILE)
     print('='*40)
     print('\t1) Update Credentials')
-    print('\t2) Namelist Settings')
-    print('\t3) Download Settings')
-    print('\t4) Ad-Hoc Trend Pull')
-    print('\t5) Namelist Trend Pull')
+    print('\t2) Update Namelist')
+    print('\t3) Change Save File')
+    print('\t4) Data for: ' + COUNTRY)
+    print('\t5) Ad-Hoc Trend Pull')
+    print('\t6) Namelist Trend Pull')
     print('='*40)
     return
     
@@ -182,9 +193,6 @@ def menu():
     
 def credentials():
     '''User prompt to update instance-based credentials'''
-    print('-'*40)
-    print('Edit Google Credentials:')
-    print(' .'*20)
     global USERNAME, PASSWORD, AGENT
     USERNAME = raw_input('Username: ').rstrip('\n')
     PASSWORD = raw_input('Password: ').rstrip('\n')
@@ -195,27 +203,31 @@ def credentials():
     return
     
     
-def namelist():
-    return
-
-def downloadsettings():
-    return
-    
 def pull(adhoc=True, save=True, printDataFrame=False):
     try:
         pytrend = TrendReq(USERNAME, PASSWORD, AGENT)
+        
         if adhoc:
             terms = raw_input('Search: ').rstrip('\n')
         else:
-            terms = 'placeholder, placeholder2'
+            terms = NAMES
         payload = {'q': terms, 'geo': COUNTRY}
-        
-        # trend = pytrend.trend(payload)
-        # print(trend)
-        
-        df = pytrend.trend(payload, return_type='dataframe')
+        '''
         if printDataFrame:
+            df = pytrend.trend(payload, return_type='dataframe')
             print(df)
+        '''
+        if save:
+            trend = pytrend.trend(payload)
+            print(trend)
+            
+            mode = 'a' if os.path.exists(SAVE_FILE) else 'w+'
+            file = open(SAVE_FILE, mode)
+            file.write(str(trend))
+            file.close()
+            print('Saved trend data to: ' + SAVE_FILE)
+            
+            print('NO EXCEPT')
         
     except Exception as reason:
         returnException(reason)
