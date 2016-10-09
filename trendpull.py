@@ -41,8 +41,13 @@ USERNAME = ''
 PASSWORD = ''
 AGENT = ''
 
+NAMES = []
+
 CREDENTIAL_FILE = os.path.join(os.path.dirname(sys.argv[0]), 'data', 'data.txt')
 NAME_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'names', 'names.csv')
+
+COUNTRY = 'World'
+COUNTRY = 'US'
 
 
 
@@ -52,8 +57,9 @@ NAME_LIST = os.path.join(os.path.dirname(sys.argv[0]), 'names', 'names.csv')
 
 def main():
     loadCredentials()
-    print('END')
-        #Menu loop
+    loadNames()
+    
+    # Menu loop
     while True:
         try:
             menu()
@@ -70,10 +76,11 @@ def main():
                 downloadsettings()
             #AD-HOC TREND PULL
             elif choice == 4:
-                adhoc()
+                pull(True, True, True)
+                # def pull(adhoc=True, save=True, printDataFrame=False):
             #MASS TREND PULL
             elif choice == 5:
-                masspull()
+                pull(False, True, True)
             #EXIT SENTINEL
             elif choice == 0:
                 sys.exit()
@@ -124,6 +131,30 @@ def loadCredentials():
     return
     
     
+def loadNames():
+    global NAMES
+    try:
+        r = open(NAME_LIST, 'r')
+        NAMES = []
+        index = 0
+        line = r.readline()
+        while line != '':
+            line = line.rstrip('\n')
+            NAMES.append(line)
+            index += 1
+            line = r.readline()    
+        r.close()
+        NAMES = ', '.join(NAMES)
+        
+        print('Auto-Loading Names:\n' + NAME_LIST + '\t(' + str(index) + ')')
+        
+    except Exception as e:
+        print('Could not load name list by default')
+    print('-'*40)
+    
+    return
+    
+    
 def menu():
     '''Display the main menu'''
     print('\n\n')
@@ -170,11 +201,26 @@ def namelist():
 def downloadsettings():
     return
     
-def adhoc():
+def pull(adhoc=True, save=True, printDataFrame=False):
+    try:
+        pytrend = TrendReq(USERNAME, PASSWORD, AGENT)
+        if adhoc:
+            terms = raw_input('Search: ').rstrip('\n')
+        else:
+            terms = 'placeholder, placeholder2'
+        payload = {'q': terms, 'geo': COUNTRY}
+        
+        # trend = pytrend.trend(payload)
+        # print(trend)
+        
+        df = pytrend.trend(payload, return_type='dataframe')
+        if printDataFrame:
+            print(df)
+        
+    except Exception as reason:
+        returnException(reason)
     return
     
-def masspull():
-    return
     
 ################################################################################
 #                                      Tertiary Operations
